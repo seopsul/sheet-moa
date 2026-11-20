@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="ko">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>시트모아 · Excel 파일 병합</title><link rel="stylesheet" href="style.css"><script defer src="vendor/xlsx.full.min.js"></script><script defer src="core.js"></script><script defer src="app.js"></script></head>
+<body>
+<header><a class="brand" href="./"><span class="logo">▦</span> 시트모아 <span class="tag">SHEET MERGER</span></a><span class="privacy">브라우저에서 안전하게 처리</span></header>
+<main><nav class="tool-nav" aria-label="파일 도구"><a href="index.html" aria-current="page">파일 병합</a><a href="split.html">파일 분리</a></nav>
+<div class="intro"><span class="eyebrow">흩어진 데이터를, 하나의 파일로</span><h1>파일은 여러 개.<br>결과는 <em>하나로.</em></h1><p>CSV와 Excel 파일을 함께 올리고, 간편하게 병합하세요.</p></div>
+<div class="workspace"><section class="panel input-panel"><div class="panel-title"><h2>파일 추가</h2><button id="clear" class="text-button" disabled>전체 지우기</button></div>
+<label class="drop" id="drop" tabindex="0" role="button" aria-label="CSV 또는 Excel 파일 선택"><input id="files" type="file" accept=".csv,.xlsx" multiple hidden><span class="upload-icon">＋</span><strong>파일을 이곳에 놓아주세요</strong><span>또는 클릭해서 파일 선택</span><small>CSV, XLSX · 여러 파일 선택 가능</small></label>
+<div id="file-list" class="file-list"></div><div id="empty" class="empty">아직 추가한 파일이 없습니다.</div>
+<div class="settings"><h3>병합 설정</h3><label class="check"><input type="checkbox" id="header" checked><span>첫 번째 행을 열 제목으로 사용</span></label><label class="check"><input type="checkbox" id="source"><span>원본 파일·시트 이름 열 추가</span></label><div class="setting-row"><label for="sheets">Excel 시트</label><select id="sheets"><option value="first">첫 번째 시트만</option><option value="all">모든 시트</option></select></div><div class="setting-row"><label for="encoding">CSV 인코딩</label><select id="encoding"><option value="utf-8">UTF-8</option><option value="euc-kr">한국어 (EUC-KR / CP949)</option></select></div><p class="hint">같은 제목의 열을 맞춰 아래로 이어 붙입니다.<br>없는 열은 빈칸으로 채웁니다.</p></div>
+<button id="merge" class="primary" disabled>파일 병합하기</button><p id="status" class="status" role="status" aria-live="polite">파일을 추가하면 병합할 수 있습니다.</p></section>
+<section class="panel result-panel"><div class="panel-title"><h2>병합 결과</h2><span id="badge" class="badge">대기 중</span></div><div class="stats"><div><span>선택한 파일</span><strong id="file-count">0 <small>개</small></strong></div><div><span>데이터 행</span><strong id="row-count">—</strong></div><div><span>열</span><strong id="col-count">—</strong></div></div>
+<div id="preview-empty" class="preview-empty"><span class="table-symbol">▦</span><h3>데이터가 모이는 공간</h3><p>파일을 추가하고 병합하면<br>이곳에서 결과를 확인할 수 있습니다.</p></div><div id="preview-wrap" hidden><div class="preview-head"><strong>데이터 미리보기</strong><span>처음 100행 · 최대 30열</span></div><div class="table-scroll"><table id="preview"></table></div><p id="preview-note" class="hint"></p></div>
+<div class="download"><h3>파일로 저장</h3><label class="filename-label" for="filename">파일 이름</label><input id="filename" class="filename" value="병합된_데이터" placeholder="병합된_데이터"><fieldset><legend>다운로드 형식</legend><label class="format"><input type="radio" name="format" value="xlsx" checked><strong>Excel</strong><span>.xlsx</span></label><label class="format"><input type="radio" name="format" value="csv"><strong>CSV</strong><span>.csv</span></label></fieldset><button id="download" class="download-button" disabled>병합 파일 다운로드</button><p class="hint">CSV는 한글 호환을 위해 UTF-8 BOM으로 저장합니다.</p></div></section></div>
+<footer><span>별도 설치 없이, 내 브라우저에서.</span><span>입력 파일의 서식·수식 대신 셀 값을 병합합니다.</span></footer>
+</main></body></html>
+

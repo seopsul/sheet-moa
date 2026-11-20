@@ -1,0 +1,23 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');const {dateParts,splitRows}=require('./dist/split-core.js');
+for(const text of ['2026-01-15','2026. 1. 15.','2026/1/15','20260115','2026년 1월 15일','2026-01-15T23:50:00-09:00'])assert.deepEqual(dateParts(text),{year:2026,month:1},text);
+for(const text of ['2026-02-29','2026-13-01','2026-04-31','2026-01-15junk','01/02/26','46000'])assert.equal(dateParts(text),null,text);
+assert.deepEqual(dateParts('2024-02-29'),{year:2024,month:2});assert.equal(dateParts('1900-02-29'),null);
+assert.deepEqual(dateParts('03/04/2026','mdy'),{year:2026,month:3});assert.deepEqual(dateParts('03/04/2026','dmy'),{year:2026,month:4});assert.equal(dateParts('03/04/2026'),null);
+const data=[['일자','금액'],['2026-01-01','001'],['2026/01/15','002'],['2025-01-01',3],['2026.02.01',4],['',5],['2026-02-30',6]];
+const year=splitRows(data,0,true,{mode:'year'});assert.deepEqual(year.groups.map(g=>g.value),['2025','2026','','날짜 확인 필요']);assert.equal(year.invalidCount,1);
+const month=splitRows(data,0,true,{mode:'month'});assert.deepEqual(month.groups.map(g=>g.value),['2025-01','2026-01','2026-02','','날짜 확인 필요']);assert.equal(month.groups[1].rows.length,2);assert.equal(month.groups[1].rows[1][0],'2026/01/15');
+assert.equal(splitRows([['일자'],['2026']],0,true,{mode:'year'}).groups[0].value,'2026');assert.equal(splitRows([['일자'],['2026']],0,true,{mode:'month'}).invalidCount,1);
+const {chromium}=require('playwright');const XLSX=require('./dist/vendor/xlsx.full.min.js');
+(async()=>{fs.mkdirSync('test-results',{recursive:true});const b=await chromium.launch({headless:true,channel:'msedge'});try{const p=await b.newPage({viewport:{width:1360,height:1100}}),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.goto(require('node:url').pathToFileURL(path.resolve('dist/split.html')).href);
+await p.locator('#file').setInputFiles({name:'일자.csv',mimeType:'text/csv',buffer:Buffer.from('\uFEFF'+data.map(row=>row.join(',')).join('\n'))});await p.waitForFunction(()=>!document.getElementById('split').disabled);
+await p.locator('#split-mode').selectOption('year');await p.locator('#split').click();assert.equal(await p.locator('#group-count').textContent(),'4');assert.ok((await p.locator('#status').textContent()).includes('1행'));
+await p.locator('#split-mode').selectOption('month');assert.equal(await p.locator('#download-all').isDisabled(),true);await p.locator('#split').click();assert.equal(await p.locator('#group-count').textContent(),'5');
+await p.locator('.group-preview').nth(1).click();assert.ok((await p.locator('#preview').textContent()).includes('2026/01/15'));
+for(const format of ['csv','xlsx']){await p.locator(`input[value="${format}"]`).check();const pending=p.waitForEvent('download');await p.locator('.group-row').nth(1).locator('.text-button').click();const download=await pending;assert.ok(download.suggestedFilename().includes('2026-01'));const book=XLSX.read(fs.readFileSync(await download.path()),{type:'buffer',raw:true});const sheet=book.Sheets[book.SheetNames[0]];assert.equal(sheet.A3.v,'2026/01/15');}
+await p.screenshot({path:'test-results/date-preview.png',fullPage:true});await p.setViewportSize({width:390,height:844});assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+// Dates are read from Excel number formats, independent of displayed locale or row gaps.
+const book=XLSX.utils.book_new(),sheet=XLSX.utils.aoa_to_sheet([['일자','이름'],[46023,'첫째'],[],[46054,'둘째']]);sheet.A2.z='m/d/yy';sheet.A4.z='dd/mm/yyyy';XLSX.utils.book_append_sheet(book,sheet,'날짜');
+await p.locator('#file').setInputFiles({name:'날짜.xlsx',mimeType:'application/octet-stream',buffer:Buffer.from(XLSX.write(book,{type:'array',bookType:'xlsx'}))});await p.waitForFunction(()=>!document.getElementById('split').disabled);await p.locator('#split').click();assert.equal(await p.locator('#group-count').textContent(),'2');assert.ok((await p.locator('#groups').textContent()).includes('2026-01'));assert.ok((await p.locator('#groups').textContent()).includes('2026-02'));
+await p.locator('#split-mode').selectOption('value');await p.locator('#split').click();assert.equal(await p.locator('#group-count').textContent(),'2');assert.deepEqual(errors,[]);console.log('PASS: year/month grouping, cross-year January separation, leap/invalid dates, ISO timezone stability, date order selection, invalid/blank row retention, original text and leading zeros, CSV/XLSX downloads, Excel dates and blank row alignment, responsive layout, original value mode');
+}finally{await b.close();}})().catch(e=>{console.error(e);process.exit(1)});
+
