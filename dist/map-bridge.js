@@ -1,0 +1,6 @@
+window.MapBridge={
+  async database(){return new Promise((resolve,reject)=>{const request=indexedDB.open('sheet-moa-map',1);request.onupgradeneeded=()=>request.result.createObjectStore('handoff');request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(Error('브라우저 임시 저장소를 사용할 수 없습니다.'));});},
+  async put(data){const db=await this.database(),token=crypto.randomUUID();try{await new Promise((resolve,reject)=>{const tx=db.transaction('handoff','readwrite');tx.objectStore('handoff').put({token,time:Date.now(),data},'latest');tx.oncomplete=resolve;tx.onerror=()=>reject(Error('분리 결과를 임시 저장하지 못했습니다. 파일로 내려받아 지도 페이지에서 열어주세요.'));tx.onabort=tx.onerror;});return token;}finally{db.close();}},
+  async get(token){const db=await this.database();try{return await new Promise((resolve,reject)=>{const request=db.transaction('handoff').objectStore('handoff').get('latest');request.onsuccess=()=>{const value=request.result;resolve(value?.token===token&&Date.now()-value.time<86400000?value.data:null);};request.onerror=()=>reject(Error('분리 결과를 불러오지 못했습니다.'));});}finally{db.close();}},
+  async clear(){const db=await this.database();try{await new Promise((resolve,reject)=>{const tx=db.transaction('handoff','readwrite');tx.objectStore('handoff').clear();tx.oncomplete=resolve;tx.onerror=()=>reject(Error('임시 데이터를 지우지 못했습니다.'));});}finally{db.close();}}
+};

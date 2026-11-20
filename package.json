@@ -1,12 +1,16 @@
 {
   "name": "sheet-moa",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "description": "Browser-local CSV and XLSX merge and split tool with year/month grouping",
   "scripts": {
     "test": "node check.cjs",
-    "test:browser": "node browser-check.cjs && node split-check.cjs && node date-check.cjs"
+    "test:browser": "node browser-check.cjs && node split-check.cjs && node date-check.cjs && node map-check.cjs"
   },
-  "engines": { "node": ">=20" },
-  "devDependencies": { "playwright": "1.62.1" }
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
+  }
 }
